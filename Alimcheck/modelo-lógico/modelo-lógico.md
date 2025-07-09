@@ -1,4 +1,4 @@
 ## MODELO LÓGICO
 
-![Modelo Lógico](imagens/lógico.jpg)
+![Modelo Lógico](lógico.jpg)
 
