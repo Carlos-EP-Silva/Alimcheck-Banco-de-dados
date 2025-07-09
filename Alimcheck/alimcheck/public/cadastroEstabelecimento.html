@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Cadastro de Estabelecimento</title>
+<style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin: 0;
+      background: #f4f7f6;
+      color: #222;
+    }
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      background: #5cb85c;
+      color: #fff;
+    }
+    .logo-link { text-decoration: none; color: inherit; }
+    .topo .logo {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .menu a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .menu a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .form-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 3rem 1rem;
+    }
+    .form-container {
+      background: white;
+      max-width: 450px;
+      width: 100%;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .form-container h1 {
+      margin-top: 0;
+      margin-bottom: 2rem;
+      font-size: 1.8rem;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-container button {
+      width: 100%;
+      padding: 12px 25px;
+      margin-top: 1rem;
+      background: #5cb85c;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+    }
+    .form-container button:hover {
+      background-color: #4a934a;
+    }
+  </style>
+</head>
+<body>
+    <script>
+        // Bloqueia o acesso se o usuário não for um dono de estabelecimento
+        (function() {
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            if (!usuario || usuario.tipo.toLowerCase() !== 'dono_estabelecimento') {
+                alert('Você não tem permissão para acessar esta página.');
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+  <header class="topo">
+    <a href="painel-dono.html" class="logo-link">
+        <div class="logo">AlimCheck</div>
+    </a>
+    <nav class="menu">
+      <a href="meus-estabelecimentos.html">Meus Estabelecimentos</a>
+      <a href="#" onclick="logout()">Sair</a>
+    </nav>
+  </header>
+
+    <main class="form-wrapper">
+        <div class="form-container">
+            <h1>Cadastrar Novo Estabelecimento</h1>
+            <form id="formEstabelecimento">
+                <input type="text" id="nome" placeholder="Nome do Estabelecimento" required>
+                <input type="text" id="endereco" placeholder="Endereço" required>
+                
+                <select id="categoria" required>
+                    <option value="">Carregando categorias...</option>
+                </select>
+
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </main>
+    
+    <script>
+        function logout() {
+            if (confirm('Você tem certeza que deseja sair?')) {
+                localStorage.removeItem('usuario');
+                localStorage.removeItem('token');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // --- NOVO SCRIPT PARA CARREGAR AS CATEGORIAS ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const selectCategoria = document.getElementById('categoria');
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/categorias');
+                const categorias = await response.json();
+                
+                selectCategoria.innerHTML = '<option value="" disabled selected>Selecione uma categoria</option>'; // Limpa e adiciona a opção padrão
+
+                categorias.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id; // O valor será o ID da categoria
+                    option.textContent = cat.nome; // O texto será o nome da categoria
+                    selectCategoria.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+                selectCategoria.innerHTML = '<option value="">Não foi possível carregar as categorias</option>';
+            }
+        });
+
+
+        // --- SCRIPT DE ENVIO DO FORMULÁRIO ATUALIZADO ---
+        document.getElementById('formEstabelecimento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            if (!usuario || !usuario.id) {
+                alert('Sessão inválida. Faça login novamente.');
+                return;
+            }
+            
+            // MUDANÇA: O objeto agora envia 'categoria_id'
+            const dadosCadastro = {
+                nome: document.getElementById('nome').value,
+                endereco: document.getElementById('endereco').value,
+                categoria_id: document.getElementById('categoria').value, // Pega o ID da categoria selecionada
+                dono_id: usuario.id
+            };
+
+            // Validação para garantir que uma categoria foi selecionada
+            if (!dadosCadastro.categoria_id) {
+                alert('Por favor, selecione uma categoria.');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/estabelecimentos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dadosCadastro),
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    alert('Estabelecimento cadastrado com sucesso!');
+                    window.location.href = 'meus-estabelecimentos.html';
+                } else {
+                    throw new Error(resultado.error || 'Ocorreu um erro desconhecido.');
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar:', error);
+                alert(`Erro ao cadastrar: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

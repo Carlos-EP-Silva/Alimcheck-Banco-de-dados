@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>AlimCheck - Painel do Administrador</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      margin-bottom: 2.5rem;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .grid-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      color: #4CAF50;
+    }
+
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bem-vindo(a), Administrador!</h1>
+  
+  <div class="grid-container">
+    <a href="gerenciar-usuarios.html" class="grid-item">
+      <span class="icon">👥</span>
+      Gerenciar Usuários
+    </a>
+    <a href="#" onclick="logout()" class="grid-item">
+      <span class="icon">🚪</span>
+      Sair
+    </a>
+  </div>
+
+  <script>
+    // Bloqueio de acesso: só admin pode entrar
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    if (!usuario || usuario.tipo !== 'admin') {
+      alert('Você não tem permissão para acessar esta página.');
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      if (confirm('Você tem certeza que deseja sair?')) {
+        localStorage.removeItem('usuario');
+        window.location.href = 'login.html';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Minhas Avaliações</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', Arial, sans-serif;
+            margin: 0;
+            background: #f4f7f6;
+            color: #222;
+        }
+        .topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 25px;
+            background: #5cb85c;
+            color: #fff;
+        }
+        .logo-link { text-decoration: none; color: inherit; }
+        .topo .logo {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: background 0.2s;
+        }
+        .menu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .secao h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+        }
+        .card-link:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card-link img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .card-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-info h3 { margin: 0 0 5px 0; font-size: 1.1em; font-weight: 600; }
+        .card-info .comentario { font-size: 0.9em; color: #555; margin-top: 10px; font-style: italic;}
+        .card-footer { font-size: 0.8em; color: #888; margin-top: auto; padding-top: 10px; }
+        .rating-display { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .stars { display: inline-block; font-size: 0; position: relative; }
+        .stars::before { content: '★★★★★'; font-size: 18px; color: #ddd; }
+        .stars::after { content: '★★★★★'; font-size: 18px; color: #f1c40f; position: absolute; top: 0; left: 0; white-space: nowrap; overflow: hidden; width: var(--rating); }
+        .rating-display span { font-size: 0.85em; color: #777; }
+        .empty-message { text-align: center; padding: 3rem; background-color: #fff; border-radius: 12px; color: #666; font-size: 1.1rem; grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+
+<script>
+    // Bloqueia o acesso se o usuário não estiver logado ou não for um cliente.
+    (function() {
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
+        
+        if (!usuario || usuario.tipo.toLowerCase() !== 'cliente') {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'login.html';
+        }
+    })();
+</script>
+
+<header class="topo">
+    <a href="menu-principal.html" class="logo-link">
+        <div class="logo">AlimCheck</div>
+    </a>
+    <nav class="menu" id="nav-menu">
+        <a href="perfil.html">Perfil</a>
+        <a href="ranking-estabelecimentos.html">Ranking</a>
+        <a href="pesquisar-estabelecimentos.html">Pesquisar</a>
+        <a href="#" onclick="logout()">Sair</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="secao">
+        <h1>Minhas Avaliações</h1>
+        <div class="grid-cards" id="lista-avaliacoes">
+            <p class="empty-message">Carregando suas avaliações...</p>
+        </div>
+    </section>
+</main>
+
+<script>
+    function logout() {
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
+        if (!usuario || !usuario.id) {
+            alert('Usuário não autenticado.');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const container = document.getElementById('lista-avaliacoes');
+
+        try {
+            // =================================================================
+            // SCRIPT DE DEBUG ADICIONADO AQUI
+            // =================================================================
+            const apiUrl = `http://localhost:3000/api/avaliacoes?usuarioId=${usuario.id}`;
+            console.log("CHAMANDO A API COM A SEGUINTE URL:", apiUrl);
+
+            const res = await fetch(apiUrl);
+            // =================================================================
+
+            const avaliacoes = await res.json();
+
+            if (res.ok && avaliacoes.length > 0) {
+                container.innerHTML = '';
+                
+                avaliacoes.forEach(av => {
+                    const imageUrl = av.imagemEstabelecimento ? `http://localhost:3000${av.imagemEstabelecimento}` : `https://picsum.photos/seed/${av.estabelecimento_id}/400/200`;
+                    const cardLink = document.createElement('a');
+                    cardLink.href = `estabelecimento-detalhes.html?id=${av.estabelecimento_id}`;
+                    cardLink.className = 'card-link';
+                    
+                    const ratingPercent = (av.nota / 5) * 100;
+                    const dataFormatada = new Date(av.created_at).toLocaleDateString('pt-BR');
+
+                    cardLink.innerHTML = `
+                        <img src="${imageUrl}" alt="Foto de ${av.nomeEstabelecimento}">
+                        <div class="card-info">
+                            <h3>${av.nomeEstabelecimento || 'Desconhecido'}</h3>
+                            <div class="rating-display">
+                                <div class="stars" style="--rating: ${ratingPercent}%;"></div>
+                                <span>(${av.nota})</span>
+                            </div>
+                            <p class="comentario">"${av.comentario || 'Nenhum comentário.'}"</p>
+                            <div class="card-footer">
+                                <span>Avaliado em: ${dataFormatada}</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(cardLink);
+                });
+            } else {
+                // Se a resposta do servidor não for 'ok' (como o erro 400), também cai aqui
+                container.innerHTML = '<p class="empty-message">Você ainda não fez nenhuma avaliação.</p>';
+            }
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = '<p class="empty-message">Erro ao carregar suas avaliações. Tente novamente.</p>';
+        }
+    });
+</script>
+
+</body>
+</html>

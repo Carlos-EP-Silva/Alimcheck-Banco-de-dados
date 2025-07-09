@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalhes do Estabelecimento</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        header {
+            background-color: #ffffff;
+            padding: 1rem 2.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .logo-link { text-decoration: none; }
+        header .logo { font-weight: bold; font-size: 1.6rem; color: #007bff; }
+        nav a { color: #6c757d; text-decoration: none; margin-left: 1.5rem; font-weight: 500; transition: color 0.2s ease; }
+        nav a:hover { color: #007bff; }
+        .container {
+            max-width: 800px;
+            margin: 2.5rem auto;
+            padding: 1rem;
+        }
+        .detalhes-header {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+        .detalhes-header img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+        .detalhes-info {
+            padding: 2rem;
+        }
+        .detalhes-info h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2.2rem;
+        }
+        .detalhes-info p {
+            margin: 0.25rem 0;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        .btn-avaliar {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.8rem 2rem;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .btn-avaliar:hover {
+            background-color: #218838;
+        }
+        .avaliacoes-section h2 {
+            font-size: 1.8rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .avaliacao-card { background-color: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.07); margin-bottom: 1.5rem; border: 1px solid #e9ecef; display: flex; flex-direction: column; padding: 1.5rem 2rem; }
+        .avaliacao-card .usuario-info { display: flex; align-items: center; margin-bottom: 1rem; font-weight: 600; color: #495057;}
+        .avaliacao-card .nota { font-size: 1.2rem; color: #ffc107; margin-bottom: 1rem; }
+        .avaliacao-card .comentario { color: #343a40; line-height: 1.6; font-size: 1rem; }
+        .avaliacao-card .data { font-size: 0.8rem; color: #adb5bd; text-align: right; margin-top: 1rem; }
+        .empty-message { text-align: center; padding: 3rem; background-color: #fff; border-radius: 12px; border: 1px solid #e9ecef; color: #6c757d; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <script>
+        // SOLUÇÃO IMPLEMENTADA AQUI
+        (function() {
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            
+            // Cria uma lista de tipos permitidos
+            const tiposPermitidos = ['cliente', 'dono_estabelecimento'];
+            const tipoUsuario = usuario ? usuario.tipo.toLowerCase() : '';
+
+            // Se o usuário não estiver logado OU se o tipo dele não estiver na lista de permitidos, bloqueia o acesso
+            if (!usuario || !tiposPermitidos.includes(tipoUsuario)) {
+                alert('Você não tem permissão para acessar esta página.');
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+
+    <header>
+        <a href="menu-principal.html" class="logo-link">
+            <div class="logo">AlimCheck</div>
+        </a>
+        <nav>
+            <a href="perfil.html">Perfil</a>
+            <a href="minhas-avaliacoes.html">Minhas Avaliações</a>
+            <a href="ranking-estabelecimentos.html">Ranking</a>
+            <a href="pesquisar-estabelecimentos.html">Pesquisar</a>
+            <a href="#" onclick="logout()">Sair</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="detalhes-header">
+            <img id="detalhe-imagem" src="https://via.placeholder.com/800x300.png?text=Carregando..." alt="Foto do estabelecimento">
+            <div class="detalhes-info">
+                <h1 id="detalhe-nome">Carregando...</h1>
+                <p id="detalhe-categoria"></p>
+                <p id="detalhe-endereco"></p>
+                <a id="btn-avaliar" href="#" class="btn-avaliar">Fazer uma Avaliação</a>
+            </div>
+        </div>
+
+        <div class="avaliacoes-section">
+            <h2>Avaliações</h2>
+            <div id="lista-avaliacoes">
+                <p>Carregando avaliações...</p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function logout() {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+
+        async function carregarDetalhesEstabelecimento(id) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/estabelecimentos/${id}`);
+                if (!response.ok) throw new Error('Estabelecimento não encontrado');
+                const est = await response.json();
+
+                document.title = est.nome;
+                document.getElementById('detalhe-nome').textContent = est.nome;
+                document.getElementById('detalhe-categoria').textContent = est.categoria;
+                document.getElementById('detalhe-endereco').textContent = est.endereco;
+                document.getElementById('detalhe-imagem').src = est.imagem_url ? `http://localhost:3000${est.imagem_url}` : `https://picsum.photos/seed/${est.id}/800/300`;
+                document.getElementById('btn-avaliar').href = `avaliar.html?id=${est.id}`;
+
+            } catch (error) {
+                console.error('Erro ao carregar detalhes:', error);
+                document.querySelector('.container').innerHTML = '<h1>Estabelecimento não encontrado</h1><p>O estabelecimento que você procura não existe ou foi removido.</p>';
+            }
+        }
+
+        async function carregarAvaliacoes(id) {
+            const container = document.getElementById('lista-avaliacoes');
+            try {
+                const response = await fetch(`http://localhost:3000/api/avaliacoes?estabelecimentoId=${id}`);
+                const avaliacoes = await response.json();
+                
+                container.innerHTML = '';
+                if (avaliacoes.length > 0) {
+                    avaliacoes.forEach(av => {
+                        const card = document.createElement('div');
+                        card.className = 'avaliacao-card';
+                        const dataFormatada = new Date(av.created_at).toLocaleDateString('pt-BR');
+                        card.innerHTML = `
+                            <div class="usuario-info">👤 ${av.nomeUsuario || 'Usuário Anônimo'}</div>
+                            <div class="nota">${'★'.repeat(av.nota)}${'☆'.repeat(5 - av.nota)}</div>
+                            <p class="comentario">${av.comentario || '<i>Nenhum comentário.</i>'}</p>
+                            <p class="data">Avaliado em: ${dataFormatada}</p>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = '<p class="empty-message">Este estabelecimento ainda não tem avaliações. Seja o primeiro a avaliar!</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar avaliações:', error);
+                container.innerHTML = '<p class="empty-message">Não foi possível carregar as avaliações.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const usuario = JSON.parse(localStorage.getItem('usuario'));
+            const nav = document.querySelector('header nav');
+            const btnAvaliar = document.getElementById('btn-avaliar');
+
+            if (usuario && usuario.tipo) {
+                const tipoUsuario = usuario.tipo.toLowerCase();
+                
+                // Mostra o botão "Painel de Dono" se o usuário for um dono
+                if (tipoUsuario === 'dono_estabelecimento') {
+                    const painelDonoLink = document.createElement('a');
+                    painelDonoLink.href = 'painel-dono.html';
+                    painelDonoLink.textContent = 'Painel de Dono';
+                    nav.prepend(painelDonoLink);
+                }
+                
+                // Esconde o botão "Fazer uma Avaliação" se o usuário for um dono
+                if (tipoUsuario === 'dono_estabelecimento') {
+                    if (btnAvaliar) {
+                        btnAvaliar.style.display = 'none';
+                    }
+                }
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const estabelecimentoId = urlParams.get('id');
+
+            if (estabelecimentoId) {
+                carregarDetalhesEstabelecimento(estabelecimentoId);
+                carregarAvaliacoes(estabelecimentoId);
+            } else {
+                document.querySelector('.container').innerHTML = '<h1>Erro</h1><p>Nenhum estabelecimento foi especificado.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

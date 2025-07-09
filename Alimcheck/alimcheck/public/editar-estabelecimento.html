@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Cadastro de Estabelecimento</title>
+<style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin: 0;
+      background: #f4f7f6;
+      color: #222;
+    }
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      background: #5cb85c;
+      color: #fff;
+    }
+    .logo-link { text-decoration: none; color: inherit; }
+    .topo .logo {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .menu a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .menu a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .form-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 3rem 1rem;
+    }
+    .form-container {
+      background: white;
+      max-width: 450px;
+      width: 100%;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .form-container h1 {
+      margin-top: 0;
+      margin-bottom: 2rem;
+      font-size: 1.8rem;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-container button {
+      width: 100%;
+      padding: 12px 25px;
+      margin-top: 1rem;
+      background: #5cb85c;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+    }
+    .form-container button:hover {
+      background-color: #4a934a;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+    // Bloqueio de acesso
+    (function() {
+        const usuario = JSON.parse(localStorage.getItem('usuario'));
+        if (!usuario || usuario.tipo.toLowerCase() !== 'dono_estabelecimento') {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'login.html';
+        }
+    })();
+</script>
+
+<header class="topo">
+    <a href="painel-dono.html" class="logo-link">
+        <div class="logo">AlimCheck</div>
+    </a>
+    <nav class="menu">
+      <a href="meus-estabelecimentos.html">Meus Estabelecimentos</a>
+      <a href="#" onclick="logout()">Sair</a>
+    </nav>
+  </header>
+
+    <main class="form-wrapper">
+        <div class="form-container">
+            <h1>Cadastrar Novo Estabelecimento</h1>
+            <form id="formEstabelecimento">
+                <input type="text" id="nome" placeholder="Nome do Estabelecimento" required>
+                <input type="text" id="endereco" placeholder="Endereço" required>
+                
+                <select id="categoria" required>
+                    <option value="">Carregando categorias...</option>
+                </select>
+
+                <button type="submit">Salvar</button>
+            </form>
+        </div>
+    </main>
+
+<script>
+    function logout() {
+        if (confirm('Você tem certeza que deseja sair?')) {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const form = document.getElementById('formEditarEstabelecimento');
+        const nomeInput = document.getElementById('nome');
+        const enderecoInput = document.getElementById('endereco');
+        const selectCategoria = document.getElementById('categoria');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const estabelecimentoId = urlParams.get('id');
+
+        if (!estabelecimentoId) {
+            alert('ID do estabelecimento não encontrado na URL.');
+            window.location.href = 'meus-estabelecimentos.html';
+            return;
+        }
+
+        // Função para carregar as categorias no menu
+        async function carregarCategorias(categoriaAtualId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/categorias`);
+                const categorias = await response.json();
+                
+                selectCategoria.innerHTML = '<option value="" disabled>Selecione uma categoria</option>';
+                
+                categorias.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.nome;
+                    // Se o ID da categoria atual for igual ao ID desta opção, marca como selecionada
+                    if (cat.id == categoriaAtualId) {
+                        option.selected = true;
+                    }
+                    selectCategoria.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar categorias", error);
+                selectCategoria.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
+
+        // Preenche o formulário com os dados atuais do estabelecimento
+        try {
+            const response = await fetch(`http://localhost:3000/api/estabelecimentos/${estabelecimentoId}`);
+            if (!response.ok) throw new Error('Não foi possível carregar os dados do estabelecimento.');
+            
+            // NOTA: A rota /api/estabelecimentos/:id agora precisa retornar 'categoria_id'
+            const est = await response.json();
+            nomeInput.value = est.nome;
+            enderecoInput.value = est.endereco;
+
+            // Chama a função para carregar as categorias e já passa o ID da categoria atual
+            await carregarCategorias(est.categoria_id);
+            
+        } catch (error) {
+            console.error('Erro ao buscar dados do estabelecimento:', error);
+            alert(error.message);
+        }
+
+        // Lida com o envio do formulário para atualizar os dados
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dadosAtualizados = {
+                nome: nomeInput.value,
+                endereco: enderecoInput.value,
+                categoria_id: selectCategoria.value // Pega o novo ID da categoria selecionada
+            };
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3000/api/estabelecimentos/${estabelecimentoId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(dadosAtualizados)
+                });
+                if (response.ok) {
+                    alert('Estabelecimento atualizado com sucesso!');
+                    window.location.href = 'meus-estabelecimentos.html';
+                } else {
+                    const erro = await response.json();
+                    throw new Error(erro.error || 'Falha ao atualizar o estabelecimento.');
+                }
+            } catch (error) {
+                alert(`Erro: ${error.message}`);
+            }
+        });
+    });
+</script>
+</body>
+</html>

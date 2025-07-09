@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>AlimCheck - Meus Estabelecimentos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin: 0;
+      background: #f4f7f6;
+      color: #222;
+    }
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      background: #5cb85c;
+      color: #fff;
+    }
+    .logo-link { text-decoration: none; color: inherit; }
+    .topo .logo {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .menu a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .menu a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .secao h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    .establishment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .establishment-card, .add-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #e9ecef;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    .establishment-card:hover, .add-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    .add-card {
+        border: 2px dashed #5cb85c;
+        align-items: center;
+        justify-content: center;
+        min-height: 250px;
+        color: #5cb85c;
+    }
+    .add-card .icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+    .image-container {
+      width: 100%;
+      height: 160px;
+      background-color: #e0e0e0;
+    }
+    .card-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+    .card-content {
+      padding: 1.2rem;
+      flex-grow: 1;
+    }
+    .card-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+    }
+    .card-content p {
+      font-size: 0.9rem;
+      color: #6c757d;
+      margin: 0;
+    }
+    .card-actions {
+      padding: 0 1.2rem 1.2rem;
+      margin-top: auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .card-actions a {
+      text-decoration: none;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: center;
+      flex-grow: 1;
+      transition: background-color 0.2s;
+    }
+    .btn-edit { background-color: #007bff; color: white; }
+    .btn-edit:hover { background-color: #0056b3; }
+    .btn-reviews { background-color: #6c757d; color: white; }
+    .btn-reviews:hover { background-color: #5a6268; }
+    .empty-message {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      background-color: #fff;
+      border-radius: 12px;
+      color: #666;
+    }
+    .rodape { text-align: center; padding: 1.5rem; }
+  </style>
+</head>
+<body>
+
+<script>
+    // ========= A SOLUÇÃO ESTÁ AQUI =========
+    // Bloqueia acesso se o usuário não estiver logado ou não for do tipo correto.
+    const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+
+    // A verificação agora procura por 'dono_estabelecimento', que é o valor correto.
+    if (!usuarioLogado || usuarioLogado.tipo.toLowerCase() !== 'dono_estabelecimento') {
+        alert('Você não tem permissão para acessar esta página.');
+        window.location.href = 'login.html';
+    }
+</script>
+
+<header class="topo">
+    <a href="painel-dono.html" class="logo-link">
+      <div class="logo">AlimCheck</div>
+    </a>
+    <nav class="menu">
+      <a href="painel-dono.html">Painel Principal</a>
+      <a href="#" onclick="logout()">Sair</a>
+    </nav>
+</header>
+
+<main class="container">
+  <section class="secao">
+    <h1>Meus Estabelecimentos</h1>
+    <div id="establishment-grid" class="establishment-grid">
+      </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <p>&copy; 2025 AlimCheck. Todos os direitos reservados.</p>
+</footer>
+
+<script>
+    function logout() {
+        if (confirm('Você tem certeza que deseja sair?')) {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('token'); // Limpa também o token
+            window.location.href = 'index.html';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const grid = document.getElementById('establishment-grid');
+        // O script de verificação de permissão já rodou, então 'usuarioLogado' existe.
+        const donoId = usuarioLogado.id;
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/estabelecimentos/dono/${donoId}`);
+            if (!response.ok) {
+                throw new Error('Falha ao carregar os dados do servidor.');
+            }
+            const estabelecimentos = await response.json();
+
+            // Adiciona o card de "Adicionar Novo" no início
+            grid.innerHTML = ` 
+                <a href="cadastroEstabelecimento.html" class="add-card">
+                    <span class="icon">➕</span>
+                    <span>Adicionar Estabelecimento</span>
+                </a>
+            `;
+
+            if (estabelecimentos.length > 0) {
+                estabelecimentos.forEach(est => {
+                    // Verificação para garantir que a URL da imagem seja montada corretamente
+                    const imageUrl = est.imagem_url ? `http://localhost:3000${est.imagem_url}` : 'https://via.placeholder.com/600x320.png?text=Sem+Imagem';
+                    
+                    const card = document.createElement('div');
+                    card.classList.add('establishment-card');
+                    card.innerHTML = `
+                        <div class="image-container">
+                            <img class="card-image" src="${imageUrl}" alt="Foto de ${est.nome}" loading="lazy">
+                        </div>
+                        <div class="card-content">
+                            <h3>${est.nome}</h3>
+                            <p>${est.categoria}</p>
+                        </div>
+                        <div class="card-actions">
+                            <a href="editar-estabelecimento.html?id=${est.id}" class="btn-edit">Editar</a>
+                            <a href="ver-avaliacao.html?id=${est.id}" class="btn-reviews">Ver Avaliações</a>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            // Dispara um evento para o lazy-loading das imagens funcionar
+            document.dispatchEvent(new Event('renderFinished'));
+        } catch (error) {
+            console.error('Erro ao carregar estabelecimentos:', error);
+            grid.innerHTML = '<p class="empty-message">Não foi possível carregar seus estabelecimentos. Tente novamente.</p>';
+        }
+    });
+
+</script>
+</body>
+</html>

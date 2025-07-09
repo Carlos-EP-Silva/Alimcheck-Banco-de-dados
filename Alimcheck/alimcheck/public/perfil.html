@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Meu Perfil - AlimCheck</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin: 0;
+      background: #f4f7f6;
+      color: #222;
+    }
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      background: #5cb85c;
+      color: #fff;
+    }
+    .logo-link {
+      text-decoration: none;
+      color: inherit;
+    }
+    .topo .logo {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .menu a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .menu a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .secao h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+    /* Estilos específicos para o card de perfil */
+    .perfil-container {
+      background: white;
+      max-width: 450px;
+      margin: 2rem auto;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-align: center;
+      border: 1px solid #e9ecef;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #perfil-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: #5cb85c; /* Cor alinhada com o tema */
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    #perfil-nome {
+      font-size: 26px;
+      font-weight: 600;
+      color: #343a40;
+      margin: 0;
+    }
+    #perfil-email {
+      font-size: 16px;
+      color: #6c757d;
+      margin-top: 5px;
+      margin-bottom: 25px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 18px;
+      background-color: #eef3f0;
+      color: #4a554a;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: capitalize; /* Deixa a primeira letra maiúscula */
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topo">
+    <a href="menu-principal.html" class="logo-link">
+      <div class="logo">AlimCheck</div>
+    </a>
+    <nav class="menu">
+      <a href="minhas-avaliacoes.html">Minhas Avaliações</a>
+      <a href="ranking-estabelecimentos.html">Ranking</a>
+      <a href="pesquisar-estabelecimentos.html">Pesquisar</a>
+      <a href="#" onclick="logout()">Sair</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="perfil-container">
+      <div id="perfil-avatar"></div>
+      <h1 id="perfil-nome">Carregando...</h1>
+      <p id="perfil-email"></p>
+      <div class="badge" id="perfil-tipo"></div>
+    </div>
+  </main>
+
+  <script>
+    function logout() {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html'; // Redireciona para a página de login
+    }
+
+    // Executa quando o conteúdo do DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', () => {
+      const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+      if (usuario && usuario.nome) {
+        document.getElementById('perfil-nome').textContent = usuario.nome;
+        document.getElementById('perfil-email').textContent = usuario.email;
+        document.getElementById('perfil-tipo').textContent = usuario.tipo;
+        document.getElementById('perfil-avatar').textContent = usuario.nome.charAt(0).toUpperCase();
+      } else {
+        alert('Usuário não autenticado. Redirecionando para o login.');
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+
+</body>
+</html>

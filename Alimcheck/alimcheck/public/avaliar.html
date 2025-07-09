@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Avaliar Estabelecimento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin: 0;
+      background: #f4f7f6;
+      color: #222;
+    }
+    header.topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      background: #5cb85c;
+      color: #fff;
+    }
+    .logo-link { text-decoration: none; color: inherit; }
+    header .logo {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    nav.menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    nav.menu a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    nav.menu a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .form-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 3rem 1rem;
+    }
+    #formAvaliacao, .cooldown-message {
+      background-color: #ffffff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    #formAvaliacao h1, .cooldown-message h2 {
+      color: #1c1e21;
+      margin: 0 0 30px 0;
+      font-size: 1.8em;
+    }
+    label {
+      font-weight: 600;
+      color: #4b4f56;
+      display: block;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 1.1em;
+    }
+    .star-rating {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+    .star-rating input[type="radio"] {
+      display: none;
+    }
+    .star-rating label {
+      font-size: 2.5rem;
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+      color: #f1c40f;
+    }
+    .star-rating input[type="radio"]:checked ~ label {
+      color: #f1c40f;
+    }
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 120px;
+      box-sizing: border-box;
+    }
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px 25px;
+      margin-top: 1.5rem;
+      background: #5cb85c;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+    }
+    button[type="submit"]:hover {
+      background-color: #4a9d4a;
+    }
+    .cooldown-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .btn-voltar {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 20px;
+      transition: background-color 0.2s;
+    }
+    .btn-voltar:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topo">
+  <a href="menu-principal.html" class="logo-link">
+    <div class="logo">AlimCheck</div>
+  </a>
+  <nav class="menu" id="nav-menu"></nav>
+</header>
+
+<main class="form-wrapper">
+  <form id="formAvaliacao">
+    <h1>Deixe sua Avaliação</h1>
+    <label>Sua Nota:</label>
+    <div class="star-rating">
+      <input type="radio" id="nota5" name="nota" value="5" required><label for="nota5">★</label>
+      <input type="radio" id="nota4" name="nota" value="4"><label for="nota4">★</label>
+      <input type="radio" id="nota3" name="nota" value="3"><label for="nota3">★</label>
+      <input type="radio" id="nota2" name="nota" value="2"><label for="nota2">★</label>
+      <input type="radio" id="nota1" name="nota" value="1"><label for="nota1">★</label>
+    </div>
+    <label for="comentario">Seu Comentário:</label>
+    <textarea id="comentario" name="comentario" placeholder="Conte como foi sua experiência..."></textarea>
+    <button type="submit">Enviar Avaliação</button>
+  </form>
+</main>
+
+<script>
+(async function setupAvaliacaoPage() {
+  const nav = document.getElementById('nav-menu');
+  const formWrapper = document.querySelector('.form-wrapper');
+  const form = document.getElementById('formAvaliacao');
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const token = localStorage.getItem('token');
+
+  if (!usuario || usuario.tipo.toLowerCase() !== 'cliente') {
+    alert('Você não tem permissão para acessar esta página.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Monta o menu dinâmico
+  nav.innerHTML = `
+    <a href="perfil.html">Perfil</a>
+    <a href="minhas-avaliacoes.html">Minhas Avaliações</a>
+    <a href="ranking-estabelecimentos.html">Ranking</a>
+    <a href="pesquisar-estabelecimentos.html">Pesquisar</a>
+    <a href="#" onclick="localStorage.clear(); location.href='index.html';">Sair</a>
+  `;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const estabelecimentoId = urlParams.get('id');
+
+  if (!estabelecimentoId) {
+    alert('Estabelecimento não encontrado.');
+    window.location.href = 'menu-principal.html';
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/avaliacoes/verificar?usuarioId=${usuario.id}&estabelecimentoId=${estabelecimentoId}`);
+    const permissao = await res.json();
+    if (!permissao.podeAvaliar) {
+      formWrapper.innerHTML = `
+        <div class="cooldown-message">
+          <div class="cooldown-icon">⏳</div>
+          <h2>Aguarde para Avaliar</h2>
+          <p>Você já avaliou este estabelecimento.</p>
+          <p>Espere <strong>${permissao.diasRestantes} dia(s)</strong> para avaliar novamente.</p>
+          <a href="minhas-avaliacoes.html" class="btn-voltar">Minhas Avaliações</a>
+        </div>`;
+      return;
+    }
+  } catch (error) {
+    console.error("Erro:", error);
+    alert("Não foi possível verificar permissão.");
+    return;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nota = form.querySelector('input[name="nota"]:checked');
+    if (!nota) {
+      alert('Selecione uma nota.');
+      return;
+    }
+    const comentario = document.getElementById('comentario').value;
+    try {
+      const resp = await fetch('http://localhost:3000/api/avaliacoes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          estabelecimento_id: estabelecimentoId,
+          nota: nota.value,
+          comentario: comentario
+        })
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        alert('Avaliação enviada!');
+        window.location.href = 'minhas-avaliacoes.html';
+      } else {
+        throw new Error(data.error || 'Erro desconhecido.');
+      }
+    } catch (error) {
+      alert('Erro ao enviar avaliação: ' + error.message);
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>AlimCheck - Painel do Dono</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: #333;
+      background: #f4f7f6;
+    }
+
+    header {
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-link { text-decoration: none; color: inherit; }
+    header .logo {
+      font-weight: 600;
+      font-size: 1.6rem;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    nav a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .panel-box {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .panel-box h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .grid-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #333;
+      background-color: #fefefe;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s;
+      font-weight: 600;
+      border: 1px solid #e0e0e0;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+      color: #4CAF50;
+    }
+
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #4CAF50;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.9em;
+      color: #888;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="painel-dono.html" class="logo-link">
+      <div class="logo">AlimCheck</div>
+    </a>
+    <nav>
+      <a href="painel-dono.html">Painel</a>
+      <a href="perfil.html">Meu Perfil</a>
+      <a href="#" onclick="logout()">Sair</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="panel-box">
+      <h1 id="welcomeMessage">Painel do Dono</h1>
+      <div class="grid-container">
+        <a href="meus-estabelecimentos.html" class="grid-item">
+          <span class="icon">🏪</span>
+          Meus Estabelecimentos
+        </a>
+        <a href="ranking-estabelecimentos.html" class="grid-item">
+          <span class="icon">🏆</span>
+          Ranking Geral
+        </a>
+        <a href="perfil.html" class="grid-item">
+          <span class="icon">👤</span>
+          Meu Perfil
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 AlimCheck. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    // --- SCRIPT DE VERIFICAÇÃO E LÓGICA DA PÁGINA ---
+
+    // Imediatamente verifica a permissão ao carregar a página
+    (function verificarPermissao() {
+        const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+
+        // ===============================================================================================
+        // A SOLUÇÃO ESTÁ AQUI: A verificação agora procura por 'dono_estabelecimento'
+        // ===============================================================================================
+        if (!usuarioLogado || usuarioLogado.tipo.toLowerCase() !== 'dono_estabelecimento') {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'login.html';
+        } else {
+            // Se o usuário for o correto, exibe uma mensagem de boas-vindas personalizada
+            const welcomeHeader = document.getElementById('welcomeMessage');
+            if(welcomeHeader) {
+              welcomeHeader.textContent = `Bem-vindo, ${usuarioLogado.nome}!`;
+            }
+            console.log(`Acesso permitido para ${usuarioLogado.nome}.`);
+        }
+    })();
+
+    // Função de logout
+    function logout() {
+      if (confirm('Você tem certeza que deseja sair?')) {
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('token'); // Limpa também o token
+        window.location.href = 'login.html';
+      }
+    }
+  </script>
+
+</body>
+</html>

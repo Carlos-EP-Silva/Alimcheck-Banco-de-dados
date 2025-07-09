@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Gerenciar Usuários</title>
+  
+  <style>
+    /* CSS Integrado */
+
+    :root {
+      --cor-principal: #007bff;
+      --cor-perigo: #dc3545;
+      --cor-fundo: #f4f7f6;
+      --cor-fundo-item: #fff;
+      --cor-borda: #ddd;
+      --cor-texto: #333;
+      --sombra: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background-color: var(--cor-fundo);
+      color: var(--cor-texto);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+
+    h1, h2, h3, h4 {
+      margin-top: 0;
+    }
+
+    .topo {
+      background-color: var(--cor-principal);
+      color: white;
+      padding: 1rem 2rem;
+      position: relative;
+      text-align: center;
+    }
+
+    .btn-voltar {
+      position: absolute;
+      left: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .search-box input {
+      flex-grow: 1;
+      padding: 0.75rem;
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .btn-principal {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background-color: var(--cor-principal);
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-principal:hover {
+      background-color: #0056b3;
+    }
+
+    .user-list-item {
+      background: var(--cor-fundo-item);
+      padding: 1.25rem;
+      border: 1px solid var(--cor-borda);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s, box-shadow 0.2s;
+      box-shadow: var(--sombra);
+    }
+
+    .user-list-item:hover {
+      background-color: #f8f9fa;
+      transform: translateY(-2px);
+    }
+
+    .user-list-item p {
+      margin: 0;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background: var(--cor-fundo-item);
+      padding: 2rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .close-modal {
+      font-size: 1.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: #888;
+    }
+
+    .review-item {
+      border: 1px solid #eee;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      background-color: #fdfdfd;
+    }
+
+    .review-item > p {
+      margin: 0.5rem 0;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .review-header h4 {
+      margin: 0;
+    }
+
+    .review-footer {
+      margin-top: 0.75rem;
+      font-size: 0.85em;
+      color: #777;
+    }
+
+    .btn-block {
+      background-color: var(--cor-perigo);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-block:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  // ✅ Somente admin pode acessar
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  if (!usuario || usuario.tipo.toLowerCase() !== 'admin') {
+    alert('Você não tem permissão para acessar esta página.');
+    window.location.href = 'login.html';
+  }
+</script>
+
+<header class="topo">
+  <a href="painel-admin.html" class="btn-voltar">&#8592; Voltar ao Painel</a>
+</header>
+
+<main class="container">
+  <h1>Gerenciar Usuários e Avaliações</h1>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Pesquisar por nome ou e-mail do usuário...">
+    <button id="searchButton" class="btn-principal">Buscar</button>
+  </div>
+
+  <div id="resultsContainer" class="user-list"></div>
+</main>
+
+<div id="userModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalUserName"></h2>
+      <button id="closeModal" class="close-modal" aria-label="Fechar modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h3>Avaliações Feitas:</h3>
+      <div id="modalReviewsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const userModal = document.getElementById('userModal');
+    const modalUserName = document.getElementById('modalUserName');
+    const modalReviewsList = document.getElementById('modalReviewsList');
+    const closeModalButton = document.getElementById('closeModal');
+
+    // ========= A SOLUÇÃO ESTÁ AQUI =========
+    // A URL base da API foi corrigida para apontar para a raiz da API, não para /admin
+    const API_BASE_URL = 'http://localhost:3000/api'; 
+
+    const searchUsers = async () => {
+      const termo = searchInput.value.trim();
+      if (!termo) {
+        // Carrega todos os usuários se a busca estiver vazia
+        try {
+            const response = await fetch(`${API_BASE_URL}/usuarios`);
+            if (!response.ok) throw new Error(`Erro na rede: ${response.statusText}`);
+            const users = await response.json();
+            displayUsers(users);
+        } catch (error) {
+            console.error('Erro na busca de usuários:', error);
+            resultsContainer.innerHTML = '<p>Ocorreu um erro ao conectar com o servidor. Tente novamente.</p>';
+        }
+        return;
+      }
+
+      resultsContainer.innerHTML = '<p>Buscando...</p>';
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/usuarios?pesquisa=${termo}`);
+        if (!response.ok) throw new Error(`Erro na rede: ${response.statusText}`);
+        const users = await response.json();
+        displayUsers(users);
+      } catch (error) {
+        console.error('Erro na busca de usuários:', error);
+        resultsContainer.innerHTML = '<p>Ocorreu um erro ao conectar com o servidor. Tente novamente.</p>';
+      }
+    };
+
+    const displayUsers = (users) => {
+      resultsContainer.innerHTML = '';
+      if (users.length > 0) {
+        users.forEach(user => {
+          const userDiv = document.createElement('div');
+          userDiv.className = 'user-list-item';
+          userDiv.dataset.userId = user.id;
+          userDiv.dataset.userName = user.nome;
+          userDiv.innerHTML = `<p><strong>${user.nome}</strong> (${user.email}) - Tipo: ${user.tipo}</p>`;
+          resultsContainer.appendChild(userDiv);
+        });
+      } else {
+        resultsContainer.innerHTML = '<p>Nenhum usuário encontrado com esse termo.</p>';
+      }
+    };
+
+    const showUserReviews = async (userId, userName) => {
+      modalUserName.textContent = `Monitorando: ${userName}`;
+      modalReviewsList.innerHTML = '<p>Carregando avaliações...</p>';
+      userModal.classList.add('active');
+
+      try {
+        // A rota para buscar avaliações por usuário já existe em /api/avaliacoes
+        const response = await fetch(`${API_BASE_URL}/avaliacoes?usuarioId=${userId}`);
+        if (!response.ok) throw new Error('Falha ao carregar avaliações.');
+        const reviews = await response.json();
+        displayReviews(reviews);
+      } catch (error) {
+        console.error('Erro ao buscar avaliações:', error);
+        modalReviewsList.innerHTML = '<p>Erro ao carregar as avaliações. Tente novamente.</p>';
+      }
+    };
+
+    const displayReviews = (reviews) => {
+      modalReviewsList.innerHTML = '';
+      if (reviews.length > 0) {
+        reviews.forEach(review => {
+          const reviewDiv = document.createElement('div');
+          reviewDiv.className = 'review-item';
+          const ratingStars = '★'.repeat(review.nota) + '☆'.repeat(5 - review.nota);
+          const reviewDate = new Date(review.created_at).toLocaleDateString('pt-BR');
+
+          reviewDiv.innerHTML = `
+            <div class="review-header">
+              <h4>${review.nomeEstabelecimento || 'Estabelecimento Desconhecido'}</h4>
+              <button class="btn-block" data-review-id="${review.id}">Bloquear Avaliação</button>
+            </div>
+            <p><strong>Nota:</strong> ${ratingStars}</p>
+            <p><em>"${review.comentario || 'Sem comentário.'}"</em></p>
+            <div class="review-footer">
+              <small>Feita em: ${reviewDate}</small>
+            </div>
+          `;
+          modalReviewsList.appendChild(reviewDiv);
+        });
+      } else {
+        modalReviewsList.innerHTML = '<p>Este usuário não fez nenhuma avaliação.</p>';
+      }
+    };
+
+    const blockReview = async (reviewId, reviewElement) => {
+      if (!confirm(`Tem certeza que deseja bloquear (deletar) esta avaliação?`)) return;
+      try {
+        // A rota de deletar precisa do token de admin para funcionar
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/avaliacoes/${reviewId}`, { 
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await response.json();
+        if (response.ok) {
+          alert(result.message);
+          reviewElement.style.transition = 'opacity 0.5s ease';
+          reviewElement.style.opacity = '0';
+          setTimeout(() => reviewElement.remove(), 500);
+        } else {
+          throw new Error(result.error || 'Erro desconhecido');
+        }
+      } catch (error) {
+        console.error('Erro ao bloquear avaliação:', error);
+        alert(`Erro ao tentar bloquear: ${error.message}`);
+      }
+    };
+    
+    // Carrega todos os usuários ao iniciar a página
+    searchUsers();
+
+    searchButton.addEventListener('click', searchUsers);
+    searchInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') searchUsers();
+    });
+
+    resultsContainer.addEventListener('click', (e) => {
+      const userItem = e.target.closest('.user-list-item');
+      if (userItem) {
+        showUserReviews(userItem.dataset.userId, userItem.dataset.userName);
+      }
+    });
+
+    closeModalButton.addEventListener('click', () => userModal.classList.remove('active'));
+    userModal.addEventListener('click', (e) => {
+      if (e.target === userModal) userModal.classList.remove('active');
+    });
+
+    modalReviewsList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-block')) {
+        const reviewId = e.target.dataset.reviewId;
+        const reviewElement = e.target.closest('.review-item');
+        blockReview(reviewId, reviewElement);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
