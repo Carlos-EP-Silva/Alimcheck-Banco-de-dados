@@ -104,6 +104,3 @@ Desenvolver uma aplicação web responsiva que permita aos cidadãos de Itacoati
 4. Chyntia Freitas Prestes
 5. Nélio Tobias Jorio
 
-## 🤝 Como Contribuir
-
-Agradecemos o interesse em contribuir com o AlimCheck! No momento, o projeto está focado nas entregas acadêmicas, mas planejamos abrir para contribuições externas no futuro. Qualquer solicitação de mudança deve ser comunicada e acordada pela equipe para garantir que o escopo seja mantido.
